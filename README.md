@@ -1,2 +1,2 @@
-# EIP-4956
-Eternal upgradeability standard
+# EIP-9000
+Layer3 scaling standard.
