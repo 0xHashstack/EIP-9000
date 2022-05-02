@@ -50,7 +50,7 @@ library LibDiamond {
         }
     }
 
-    function contractStoragePositions() internal returns (bytes32[] memory storagePositions) {
+    function contractStoragePositions() internal view returns (bytes32[] memory storagePositions) {
         DiamondStorage storage ds = diamondStorage();
         // get facet from function selector
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;

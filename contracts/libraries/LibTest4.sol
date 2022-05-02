@@ -15,7 +15,7 @@ library LibTest4 {
         address contractOwner;
     }
 
-    function test4FacetStorage() internal returns (Test4FacetStorage storage store) {
+    function test4FacetStorage() internal view returns (Test4FacetStorage storage store) {
         bytes32[] memory storagePositions = LibDiamond.contractStoragePositions();
         bytes32 currentPosition = storagePositions[storagePositions.length - 1];
         assembly {
@@ -23,7 +23,7 @@ library LibTest4 {
         }
     }
 
-    function test4FacetDeprecatedStorage() internal returns (Test3FacetStorage storage store) {
+    function test4FacetDeprecatedStorage() internal view returns (Test3FacetStorage storage store) {
         bytes32[] memory storagePositions = LibDiamond.contractStoragePositions();
         bytes32 currentPosition = storagePositions[0]; // previous storage pointer
         assembly {
@@ -31,7 +31,7 @@ library LibTest4 {
         }
     }
 
-    function _getDataUpgraded() internal returns(address[2] memory ownerAddresses) {
+    function _getDataUpgraded() internal view returns(address[2] memory ownerAddresses) {
         return [test4FacetStorage().contractOwner, test4FacetDeprecatedStorage().contractOwner];
     }
 

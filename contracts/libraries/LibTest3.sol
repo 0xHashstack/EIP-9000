@@ -9,7 +9,7 @@ library LibTest3 {
         address contractOwner;
     }
 
-    function test3FacetStorage() internal returns (Test3FacetStorage storage store) {
+    function test3FacetStorage() internal view returns (Test3FacetStorage storage store) {
         bytes32[] memory storagePositions = LibDiamond.contractStoragePositions();
         bytes32 currentPosition = storagePositions[storagePositions.length - 1];
         assembly {
@@ -17,7 +17,7 @@ library LibTest3 {
         }
     }
 
-    function _getData() internal returns(address) {
+    function _getData() internal view returns(address) {
         return test3FacetStorage().contractOwner;
     }
 
