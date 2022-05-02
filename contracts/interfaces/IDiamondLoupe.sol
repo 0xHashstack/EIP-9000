@@ -35,4 +35,10 @@ interface IDiamondLoupe {
     /// @param _functionSelector The function selector.
     /// @return facetAddress_ The facet address.
     function facetAddress(bytes4 _functionSelector) external view returns (address facetAddress_);
+
+    /// @notice Gets the storage position key that holds all the data for given facetAddress.
+    /// @dev If facet is not found return keccak256(address(0)).
+    /// @param _facetAddress The facet address.
+    /// @return storagePositions_ Array of storage positions.
+    function storagePositions(address _facetAddress) external view returns (bytes32[] memory storagePositions_);
 }

@@ -10,9 +10,14 @@ interface IDiamondCut {
     enum FacetCutAction {Add, Replace, Remove}
     // Add=0, Replace=1, Remove=2
 
+    enum StorageAction {None, Old, Upgrade, Add}
+    // None=0, Old=1, Upgrade=2, Add=3
+
     struct FacetCut {
         address facetAddress;
-        FacetCutAction action;
+        FacetCutAction facetAction;
+        StorageAction storageAction;
+        address deprecatedFacetAddress;
         bytes4[] functionSelectors;
     }
 

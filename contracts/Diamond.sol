@@ -21,8 +21,10 @@ contract Diamond {
         bytes4[] memory functionSelectors = new bytes4[](1);
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
         cut[0] = IDiamondCut.FacetCut({
-            facetAddress: _diamondCutFacet, 
-            action: IDiamondCut.FacetCutAction.Add, 
+            facetAddress: _diamondCutFacet,
+            facetAction: IDiamondCut.FacetCutAction.Add,
+            storageAction: IDiamondCut.StorageAction.None,
+            deprecatedFacetAddress: address(0),
             functionSelectors: functionSelectors
         });
         LibDiamond.diamondCut(cut, address(0), "");        

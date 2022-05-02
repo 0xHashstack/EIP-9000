@@ -3,7 +3,7 @@
 
 const { deployDiamond } = require('../scripts/deploy.js')
 
-const { FacetCutAction } = require('../scripts/libraries/diamond.js')
+const { FacetCutAction, StorageAction } = require('../scripts/libraries/diamond.js')
 
 const { assert } = require('chai')
 
@@ -58,7 +58,9 @@ describe('Cache bug test', async () => {
     tx = await diamondCutFacet.diamondCut([
       {
         facetAddress: test1Facet.address,
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }
     ], ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -77,7 +79,9 @@ describe('Cache bug test', async () => {
     tx = await diamondCutFacet.diamondCut([
       {
         facetAddress: ethers.constants.AddressZero,
-        action: FacetCutAction.Remove,
+        facetAction: FacetCutAction.Remove,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }
     ], ethers.constants.AddressZero, '0x', { gasLimit: 800000 })

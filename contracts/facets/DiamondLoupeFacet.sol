@@ -59,6 +59,15 @@ contract DiamondLoupeFacet is IDiamondLoupe, IERC165 {
         facetAddress_ = ds.selectorToFacetAndPosition[_functionSelector].facetAddress;
     }
 
+    /// @notice Gets the storage position key that holds all the data for given facetAddress.
+    /// @dev If facet is not found return keccak256(address(0)).
+    /// @param _facetAddress The facet address.
+    /// @return storagePositions_ Array of storage positions.
+    function storagePositions(address _facetAddress) external override view returns (bytes32[] memory storagePositions_) {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        storagePositions_ = ds.facetStoragePositions[_facetAddress].storagePositions;
+    }
+
     // This implements ERC-165.
     function supportsInterface(bytes4 _interfaceId) external override view returns (bool) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();

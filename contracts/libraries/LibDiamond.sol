@@ -23,6 +23,10 @@ library LibDiamond {
         uint256 facetAddressPosition; // position of facetAddress in facetAddresses array
     }
 
+    struct FacetStoragePositions {
+        bytes32[] storagePositions;
+    }
+
     struct DiamondStorage {
         // maps function selector to the facet address and
         // the position of the selector in the facetFunctionSelectors.selectors array
@@ -36,6 +40,7 @@ library LibDiamond {
         mapping(bytes4 => bool) supportedInterfaces;
         // owner of the contract
         address contractOwner;
+        mapping(address => FacetStoragePositions) facetStoragePositions;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -43,6 +48,14 @@ library LibDiamond {
         assembly {
             ds.slot := position
         }
+    }
+
+    function contractStoragePositions() internal returns (bytes32[] memory storagePositions) {
+        DiamondStorage storage ds = diamondStorage();
+        // get facet from function selector
+        address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
+        // return array of storage positions for this facet
+        return ds.facetStoragePositions[facet].storagePositions;
     }
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -71,12 +84,13 @@ library LibDiamond {
         bytes memory _calldata
     ) internal {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
-            IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;
-            if (action == IDiamondCut.FacetCutAction.Add) {
-                addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
-            } else if (action == IDiamondCut.FacetCutAction.Replace) {
-                replaceFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
-            } else if (action == IDiamondCut.FacetCutAction.Remove) {
+            IDiamondCut.FacetCutAction facetAction = _diamondCut[facetIndex].facetAction;
+            IDiamondCut.StorageAction storageAction = _diamondCut[facetIndex].storageAction;
+            if (facetAction == IDiamondCut.FacetCutAction.Add) {
+                addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors, storageAction, _diamondCut[facetIndex].deprecatedFacetAddress);
+            } else if (facetAction == IDiamondCut.FacetCutAction.Replace) {
+                replaceFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors, storageAction, _diamondCut[facetIndex].deprecatedFacetAddress);
+            } else if (facetAction == IDiamondCut.FacetCutAction.Remove) {
                 removeFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
             } else {
                 revert("LibDiamondCut: Incorrect FacetCutAction");
@@ -86,14 +100,14 @@ library LibDiamond {
         initializeDiamondCut(_init, _calldata);
     }
 
-    function addFunctions(address _facetAddress, bytes4[] memory _functionSelectors) internal {
+    function addFunctions(address _facetAddress, bytes4[] memory _functionSelectors, IDiamondCut.StorageAction _storageAction, address _deprecatedFacetAddress) internal {
         require(_functionSelectors.length > 0, "LibDiamondCut: No selectors in facet to cut");
-        DiamondStorage storage ds = diamondStorage();        
+        DiamondStorage storage ds = diamondStorage();
         require(_facetAddress != address(0), "LibDiamondCut: Add facet can't be address(0)");
         uint96 selectorPosition = uint96(ds.facetFunctionSelectors[_facetAddress].functionSelectors.length);
         // add new facet address if it does not exist
         if (selectorPosition == 0) {
-            addFacet(ds, _facetAddress);            
+            addFacet(ds, _facetAddress, _storageAction, _deprecatedFacetAddress);
         }
         for (uint256 selectorIndex; selectorIndex < _functionSelectors.length; selectorIndex++) {
             bytes4 selector = _functionSelectors[selectorIndex];
@@ -104,14 +118,14 @@ library LibDiamond {
         }
     }
 
-    function replaceFunctions(address _facetAddress, bytes4[] memory _functionSelectors) internal {
+    function replaceFunctions(address _facetAddress, bytes4[] memory _functionSelectors, IDiamondCut.StorageAction _storageAction, address _deprecatedFacetAddress) internal {
         require(_functionSelectors.length > 0, "LibDiamondCut: No selectors in facet to cut");
         DiamondStorage storage ds = diamondStorage();
         require(_facetAddress != address(0), "LibDiamondCut: Add facet can't be address(0)");
         uint96 selectorPosition = uint96(ds.facetFunctionSelectors[_facetAddress].functionSelectors.length);
         // add new facet address if it does not exist
         if (selectorPosition == 0) {
-            addFacet(ds, _facetAddress);
+            addFacet(ds, _facetAddress, _storageAction, _deprecatedFacetAddress);
         }
         for (uint256 selectorIndex; selectorIndex < _functionSelectors.length; selectorIndex++) {
             bytes4 selector = _functionSelectors[selectorIndex];
@@ -135,12 +149,23 @@ library LibDiamond {
         }
     }
 
-    function addFacet(DiamondStorage storage ds, address _facetAddress) internal {
+    function addFacet(DiamondStorage storage ds, address _facetAddress, IDiamondCut.StorageAction _storageAction, address _deprecatedFacetAddress) internal {
         enforceHasContractCode(_facetAddress, "LibDiamondCut: New facet has no code");
         ds.facetFunctionSelectors[_facetAddress].facetAddressPosition = ds.facetAddresses.length;
         ds.facetAddresses.push(_facetAddress);
-    }    
-
+        if (_storageAction == IDiamondCut.StorageAction.None) {
+            ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(address(0))));
+        } else if (_storageAction == IDiamondCut.StorageAction.Old) {
+            ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(_deprecatedFacetAddress)));
+        } else if (_storageAction == IDiamondCut.StorageAction.Upgrade) {
+            ds.facetStoragePositions[_facetAddress].storagePositions = ds.facetStoragePositions[_deprecatedFacetAddress].storagePositions;
+            ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(_facetAddress)));
+        } else if (_storageAction == IDiamondCut.StorageAction.Add) {
+            ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(_facetAddress)));
+        } else {
+            revert("LibDiamondCut: Incorrect StorageAction");
+        }
+    }
 
     function addFunction(DiamondStorage storage ds, bytes4 _selector, uint96 _selectorPosition, address _facetAddress) internal {
         ds.selectorToFacetAndPosition[_selector].functionSelectorPosition = _selectorPosition;

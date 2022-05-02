@@ -1,6 +1,7 @@
 /* global ethers */
 
 const FacetCutAction = { Add: 0, Replace: 1, Remove: 2 }
+const StorageAction = { None: 0, Old: 1, Upgrade: 2, Add: 3 }
 
 // get function selectors from ABI
 function getSelectors (contract) {
@@ -77,6 +78,7 @@ function findAddressPositionInFacets (facetAddress, facets) {
 exports.getSelectors = getSelectors
 exports.getSelector = getSelector
 exports.FacetCutAction = FacetCutAction
+exports.StorageAction = StorageAction
 exports.remove = remove
 exports.removeSelectors = removeSelectors
 exports.findAddressPositionInFacets = findAddressPositionInFacets

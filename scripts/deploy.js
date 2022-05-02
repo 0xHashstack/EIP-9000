@@ -1,7 +1,7 @@
 /* global ethers */
 /* eslint prefer-const: "off" */
 
-const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
+const { getSelectors, FacetCutAction, StorageAction } = require('./libraries/diamond.js')
 
 async function deployDiamond () {
   const accounts = await ethers.getSigners()
@@ -42,7 +42,9 @@ async function deployDiamond () {
     console.log(`${FacetName} deployed: ${facet.address}`)
     cut.push({
       facetAddress: facet.address,
-      action: FacetCutAction.Add,
+      facetAction: FacetCutAction.Add,
+      storageAction: StorageAction.None,
+      deprecatedFacetAddress: ethers.constants.AddressZero,
       functionSelectors: getSelectors(facet)
     })
   }

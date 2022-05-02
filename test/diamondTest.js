@@ -3,6 +3,7 @@
 const {
   getSelectors,
   FacetCutAction,
+  StorageAction,
   removeSelectors,
   findAddressPositionInFacets
 } = require('../scripts/libraries/diamond.js')
@@ -51,7 +52,7 @@ describe('DiamondTest', async function () {
   it('selectors should be associated to facets correctly -- multiple calls to facetAddress function', async () => {
     assert.equal(
       addresses[0],
-      await diamondLoupeFacet.facetAddress('0x1f931c1c')
+      await diamondLoupeFacet.facetAddress('0x4246bbd6')
     )
     assert.equal(
       addresses[1],
@@ -76,7 +77,9 @@ describe('DiamondTest', async function () {
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: test1Facet.address,
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }],
       ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -100,7 +103,9 @@ describe('DiamondTest', async function () {
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: testFacetAddress,
-        action: FacetCutAction.Replace,
+        facetAction: FacetCutAction.Replace,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }],
       ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -121,7 +126,9 @@ describe('DiamondTest', async function () {
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: test2Facet.address,
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }],
       ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -140,7 +147,9 @@ describe('DiamondTest', async function () {
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: ethers.constants.AddressZero,
-        action: FacetCutAction.Remove,
+        facetAction: FacetCutAction.Remove,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }],
       ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -159,7 +168,9 @@ describe('DiamondTest', async function () {
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: ethers.constants.AddressZero,
-        action: FacetCutAction.Remove,
+        facetAction: FacetCutAction.Remove,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }],
       ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -177,11 +188,13 @@ describe('DiamondTest', async function () {
     for (let i = 0; i < facets.length; i++) {
       selectors.push(...facets[i].functionSelectors)
     }
-    selectors = removeSelectors(selectors, ['facets()', 'diamondCut(tuple(address,uint8,bytes4[])[],address,bytes)'])
+    selectors = removeSelectors(selectors, ['facets()', 'diamondCut(tuple(address,uint8,uint8,address,bytes4[])[],address,bytes)'])
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: ethers.constants.AddressZero,
-        action: FacetCutAction.Remove,
+        facetAction: FacetCutAction.Remove,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: selectors
       }],
       ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
@@ -192,7 +205,7 @@ describe('DiamondTest', async function () {
     facets = await diamondLoupeFacet.facets()
     assert.equal(facets.length, 2)
     assert.equal(facets[0][0], addresses[0])
-    assert.sameMembers(facets[0][1], ['0x1f931c1c'])
+    assert.sameMembers(facets[0][1], ['0x4246bbd6'])
     assert.equal(facets[1][0], addresses[1])
     assert.sameMembers(facets[1][1], ['0x7a0ed627'])
   })
@@ -206,22 +219,30 @@ describe('DiamondTest', async function () {
     const cut = [
       {
         facetAddress: addresses[1],
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: diamondLoupeFacetSelectors.remove(['facets()'])
       },
       {
         facetAddress: addresses[2],
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: getSelectors(ownershipFacet)
       },
       {
         facetAddress: addresses[3],
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: getSelectors(Test1Facet)
       },
       {
         facetAddress: addresses[4],
-        action: FacetCutAction.Add,
+        facetAction: FacetCutAction.Add,
+        storageAction: StorageAction.None,
+        deprecatedFacetAddress: ethers.constants.AddressZero,
         functionSelectors: getSelectors(Test2Facet)
       }
     ]
