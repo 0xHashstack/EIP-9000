@@ -156,7 +156,7 @@ library LibDiamond {
         if (_storageAction == IDiamondCut.StorageAction.None) {
             ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(address(0))));
         } else if (_storageAction == IDiamondCut.StorageAction.Old) {
-            ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(_deprecatedFacetAddress)));
+            ds.facetStoragePositions[_facetAddress].storagePositions = ds.facetStoragePositions[_deprecatedFacetAddress].storagePositions;
         } else if (_storageAction == IDiamondCut.StorageAction.Upgrade) {
             ds.facetStoragePositions[_facetAddress].storagePositions = ds.facetStoragePositions[_deprecatedFacetAddress].storagePositions;
             ds.facetStoragePositions[_facetAddress].storagePositions.push(keccak256(abi.encodePacked(_facetAddress)));
